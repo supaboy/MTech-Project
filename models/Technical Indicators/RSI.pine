@@ -1,0 +1,12 @@
+//@version=4
+study(title="Relative Strength Index", shorttitle="RSI", format=format.price, precision=2, resolution="")
+len = input(14, minval=1, title="Length")
+src = input(close, "Source", type = input.source)
+up = rma(max(change(src), 0), len)
+down = rma(-min(change(src), 0), len)
+rsi = down == 0 ? 100 : up == 0 ? 0 : 100 - (100 / (1 + up / down))
+plot(rsi, "RSI", color=#8E1599)
+band1 = hline(70, "Upper Band", color=#C0C0C0)
+bandm = hline(50, "Middle Band", color=color.new(#C0C0C0, 50))
+band0 = hline(30, "Lower Band", color=#C0C0C0)
+fill(band1, band0, color=#9915FF, transp=90, title="Background")

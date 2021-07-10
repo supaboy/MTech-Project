@@ -1,0 +1,152 @@
+study(title = "Exponential/Simple Moving Average Smoothing", shorttitle="EMA/SMA", overlay = true)
+
+len01 = input(08, minval=1, title="MA 1 Length")
+show01 = input(true, type=bool, title="Show MA 1")
+useema01 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len02 = input(11, minval=1, title="MA 2 Length")
+show02 = input(true, type=bool, title="Show MA 2")
+useema02 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len03 = input(14, minval=1, title="MA 3 Length")
+show03 = input(true, type=bool, title="Show MA 3")
+useema03 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len04 = input(17, minval=1, title="MA 4 Length")
+show04 = input(true, type=bool, title="Show MA 4")
+useema04 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len05 = input(20, minval=1, title="MA 5 Length")
+show05 = input(true, type=bool, title="Show MA 5")
+useema05 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len06 = input(23, minval=1, title="MA 6 Length")
+show06 = input(true, type=bool, title="Show MA 6")
+useema06 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len07 = input(26, minval=1, title="MA 7 Length")
+show07 = input(true, type=bool, title="Show MA 7")
+useema07 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len08 = input(29, minval=1, title="MA 8 Length")
+show08 = input(true, type=bool, title="Show MA 8")
+useema08 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len09 = input(32, minval=1, title="MA 9 Length")
+show09 = input(true, type=bool, title="Show MA 9")
+useema09 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len10 = input(36, minval=1, title="MA 10 Length")
+show10 = input(true, type=bool, title="Show MA 10")
+useema10 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len11 = input(41, minval=1, title="MA 11 Length")
+show11 = input(true, type=bool, title="Show MA 11")
+useema11 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len12 = input(50, minval=1, title="MA 12 Length")
+show12 = input(true, type=bool, title="Show MA 12")
+useema12 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len13 = input(62, minval=1, title="MA 13 Length")
+show13 = input(true, type=bool, title="Show MA 13")
+useema13 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len14 = input(75, minval=1, title="MA 14 Length")
+show14 = input(true, type=bool, title="Show MA 14")
+useema14 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len15 = input(87, minval=1, title="MA 15 Length")
+show15 = input(true, type=bool, title="Show MA 15")
+useema15 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len16 = input(100, minval=1, title="MA 16 Length")
+show16 = input(true, type=bool, title="Show MA 16")
+useema16 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len17 = input(112, minval=1, title="MA 17 Length")
+show17 = input(true, type=bool, title="Show MA 17")
+useema17 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len18 = input(125, minval=1, title="MA 18 Length")
+show18 = input(true, type=bool, title="Show MA 18")
+useema18 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len19 = input(137, minval=1, title="MA 19 Length")
+show19 = input(true, type=bool, title="Show MA 19")
+useema19 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len20 = input(150, minval=1, title="MA 20 Length")
+show20 = input(true, type=bool, title="Show MA 20")
+useema20 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len21 = input(162, minval=1, title="MA 21 Length")
+show21 = input(true, type=bool, title="Show MA 21")
+useema21 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len22 = input(175, minval=1, title="MA 22 Length")
+show22 = input(true, type=bool, title="Show MA 22")
+useema22 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len23 = input(187, minval=1, title="MA 23 Length")
+show23 = input(true, type=bool, title="Show MA 23")
+useema23 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+len24 = input(200, minval=1, title="MA 24 Length")
+show24 = input(true, type=bool, title="Show MA 24")
+useema24 = input(true, title = "Use Exponential MA - Otherwise Simple MA Used.")
+
+src = input(close, title="Source")
+
+ma01 = useema01 ? ema(src, len01) : sma(src, len01)
+ma02 = useema02 ? ema(src, len02) : sma(src, len02)
+ma03 = useema03 ? ema(src, len03) : sma(src, len03)
+ma04 = useema04 ? ema(src, len04) : sma(src, len04)
+ma05 = useema05 ? ema(src, len05) : sma(src, len05)
+ma06 = useema06 ? ema(src, len06) : sma(src, len06)
+ma07 = useema07 ? ema(src, len07) : sma(src, len07)
+ma08 = useema08 ? ema(src, len08) : sma(src, len08)
+ma09 = useema09 ? ema(src, len09) : sma(src, len09)
+ma10 = useema10 ? ema(src, len10) : sma(src, len10)
+ma11 = useema11 ? ema(src, len11) : sma(src, len11)
+ma12 = useema12 ? ema(src, len12) : sma(src, len12)
+ma13 = useema13 ? ema(src, len13) : sma(src, len13)
+ma14 = useema14 ? ema(src, len14) : sma(src, len14)
+ma15 = useema15 ? ema(src, len15) : sma(src, len15)
+ma16 = useema16 ? ema(src, len16) : sma(src, len16)
+ma17 = useema17 ? ema(src, len17) : sma(src, len17)
+ma18 = useema18 ? ema(src, len18) : sma(src, len18)
+ma19 = useema19 ? ema(src, len19) : sma(src, len19)
+ma20 = useema20 ? ema(src, len20) : sma(src, len20)
+ma21 = useema21 ? ema(src, len21) : sma(src, len21)
+ma22 = useema22 ? ema(src, len22) : sma(src, len22)
+ma23 = useema23 ? ema(src, len23) : sma(src, len23)
+ma24 = useema24 ? ema(src, len24) : sma(src, len24)
+
+//color
+plot_color01 = ma01 >= ma01[2]  ? #6196EA : ma01 < ma01[2] ? #1754B5 : na
+plot_color02 = ma02 >= ma02[2]  ? #6196EA : ma02 < ma02[2] ? #1754B5 : na
+plot_color03 = ma03 >= ma03[2]  ? #6196EA : ma03 < ma03[2] ? #1754B5 : na
+plot_color04 = ma04 >= ma04[2]  ? #6196EA : ma04 < ma04[2] ? #1754B5 : na
+plot_color05 = ma05 >= ma05[2]  ? #6196EA : ma05 < ma05[2] ? #1754B5 : na
+plot_color06 = ma06 >= ma06[2]  ? #6196EA : ma06 < ma06[2] ? #1754B5 : na
+plot_color07 = ma07 >= ma07[2]  ? #6196EA : ma07 < ma07[2] ? #1754B5 : na
+plot_color08 = ma08 >= ma08[2]  ? #6196EA : ma08 < ma08[2] ? #1754B5 : na
+plot_color09 = ma09 >= ma09[2]  ? #6196EA : ma09 < ma09[2] ? #1754B5 : na
+plot_color10 = ma10 >= ma10[2]  ? #6196EA : ma10 < ma10[2] ? #1754B5 : na
+plot_color11 = ma11 >= ma11[2]  ? #6196EA : ma11 < ma11[2] ? #1754B5 : na
+plot_color12 = ma12 >= ma12[2]  ? #6196EA : ma12 < ma12[2] ? #1754B5 : na
+plot_color13 = ma13 >= ma13[2]  ? #6196EA : ma13 < ma13[2] ? #1754B5 : na
+plot_color14 = ma14 >= ma14[2]  ? #6196EA : ma14 < ma14[2] ? #1754B5 : na
+plot_color15 = ma15 >= ma15[2]  ? #6196EA : ma15 < ma15[2] ? #1754B5 : na
+plot_color16 = ma16 >= ma16[2]  ? #6196EA : ma16 < ma16[2] ? #1754B5 : na
+plot_color17 = ma17 >= ma17[2]  ? #006600 : ma17 < ma17[2] ? #FF9999 : na
+plot_color18 = ma18 >= ma18[2]  ? #006600 : ma18 < ma18[2] ? #FF9999 : na
+plot_color19 = ma19 >= ma19[2]  ? #009900 : ma19 < ma19[2] ? #FF6666 : na
+plot_color20 = ma20 >= ma20[2]  ? #009900 : ma20 < ma20[2] ? #FF6666 : na
+plot_color21 = ma21 >= ma21[2]  ? #00CC00 : ma21 < ma21[2] ? #FF3333 : na
+plot_color22 = ma22 >= ma22[2]  ? #00CC00 : ma22 < ma22[2] ? #FF3333 : na
+plot_color23 = ma23 >= ma23[2]  ? lime : ma23 < ma23[2] ? red : na
+plot_color24 = ma24 >= ma24[2]  ? lime : ma24 < ma24[2] ? red : na
+
+plot(show01 ? ma01 : na, title="MA Plot", style=line, linewidth=1, color = plot_color01)
+plot(show02 ? ma02 : na, title="MA Plot", style=line, linewidth=1, color = plot_color02)
+plot(show03 ? ma03 : na, title="MA Plot", style=line, linewidth=1, color = plot_color03)
+plot(show04 ? ma04 : na, title="MA Plot", style=line, linewidth=1, color = plot_color04)
+plot(show05 ? ma05 : na, title="MA Plot", style=line, linewidth=1, color = plot_color05)
+plot(show06 ? ma06 : na, title="MA Plot", style=line, linewidth=1, color = plot_color06)
+plot(show07 ? ma07 : na, title="MA Plot", style=line, linewidth=1, color = plot_color07)
+plot(show08 ? ma08 : na, title="MA Plot", style=line, linewidth=1, color = plot_color08)
+plot(show09 ? ma09 : na, title="MA Plot", style=line, linewidth=1, color = plot_color09)
+plot(show10 ? ma10 : na, title="MA Plot", style=line, linewidth=1, color = plot_color10)
+plot(show11 ? ma11 : na, title="MA Plot", style=line, linewidth=1, color = plot_color11)
+plot(show12 ? ma12 : na, title="MA Plot", style=line, linewidth=1, color = plot_color12)
+plot(show13 ? ma13 : na, title="MA Plot", style=line, linewidth=1, color = plot_color13)
+plot(show14 ? ma14 : na, title="MA Plot", style=line, linewidth=1, color = plot_color14)
+plot(show15 ? ma15 : na, title="MA Plot", style=line, linewidth=1, color = plot_color15)
+plot(show16 ? ma16 : na, title="MA Plot", style=line, linewidth=1, color = plot_color16)
+plot(show17 ? ma17 : na, title="MA Plot", style=line, linewidth=1, color = plot_color17)
+plot(show18 ? ma18 : na, title="MA Plot", style=line, linewidth=1, color = plot_color18)
+plot(show19 ? ma19 : na, title="MA Plot", style=line, linewidth=2, color = plot_color19)
+plot(show20 ? ma20 : na, title="MA Plot", style=line, linewidth=2, color = plot_color20)
+plot(show21 ? ma21 : na, title="MA Plot", style=line, linewidth=3, color = plot_color21)
+plot(show22 ? ma22 : na, title="MA Plot", style=line, linewidth=3, color = plot_color22)
+plot(show23 ? ma23 : na, title="MA Plot", style=line, linewidth=4, color = plot_color23)
+plot(show24 ? ma24 : na, title="MA Plot", style=line, linewidth=4, color = plot_color24)

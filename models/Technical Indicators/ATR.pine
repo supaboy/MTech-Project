@@ -1,0 +1,16 @@
+//@version=4
+study(title="Average True Range", shorttitle="ATR", overlay=false, resolution="")
+length = input(title="Length", defval=14, minval=1)
+smoothing = input(title="Smoothing", defval="RMA", options=["RMA", "SMA", "EMA", "WMA"])
+ma_function(source, length) =>
+	if smoothing == "RMA"
+		rma(source, length)
+	else
+		if smoothing == "SMA"
+			sma(source, length)
+		else
+			if smoothing == "EMA"
+				ema(source, length)
+			else
+				wma(source, length)
+plot(ma_function(tr(true), length), title = "ATR", color=#991515, transp=0)

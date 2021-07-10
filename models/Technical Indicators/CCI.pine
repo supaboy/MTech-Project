@@ -1,0 +1,10 @@
+//@version=4
+study(title="Commodity Channel Index", shorttitle="CCI", format=format.price, precision=2, resolution="")
+length = input(20, minval=1)
+src = input(hlc3, title="Source")
+ma = sma(src, length)
+cci = (src - ma) / (0.015 * dev(src, length))
+plot(cci, "CCI", color=#996A15)
+band1 = hline(100, "Upper Band", color=#C0C0C0, linestyle=hline.style_dashed)
+band0 = hline(-100, "Lower Band", color=#C0C0C0, linestyle=hline.style_dashed)
+fill(band1, band0, color=#9C6E1B, title="Background")
