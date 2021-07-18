@@ -1,174 +1,57 @@
-// UNSIGNED !!!!
-float plane(float3 p)
-{
-return abs(p.y);
-}
+library(tm)
+#library(RTextTools)
+library(readr)
+library(e1071)
+library(dplyr)
+library(caret)
+#df<- read.csv(file.choose(), stringsAsFactors = FALSE)
+df<- read.csv("dataset/labelledTweets_DS.csv", stringsAsFactors = FALSE)
+#set.seed(1)
+df <- df[sample(nrow(df)), ]
+df <- df[sample(nrow(df)), ]
+df <- df[sample(nrow(df)), ]
+df<-df[1:2000,]
+df$class <- as.factor(df$class)
+corpus <- Corpus(VectorSource(df$text))
+corpus.clean <- corpus %>%
+    tm_map(content_transformer(tolower)) %>% 
+    tm_map(removePunctuation) %>%
+    tm_map(removeNumbers) %>%
+    tm_map(removeWords, stopwords(kind="en")) %>%
+    tm_map(stripWhitespace)
+dtm <- DocumentTermMatrix(corpus.clean)
+df.train <- df[1:300,]
+df.test <- df[301:2000,]
 
+dtm.train <- dtm[1:300,]
+dtm.test <- dtm[301:2000,]
 
-float sphere(float3 p,float x)
-{
-return length(p)-x;
-}
+corpus.clean.train <- corpus.clean[1:300]
+corpus.clean.test <- corpus.clean[301:2000]
+dim(dtm.train)
+fivefreq <- findFreqTerms(dtm.train, 5)
+length((fivefreq))
+dtm.train.nb <- DocumentTermMatrix(corpus.clean.train, control=list(dictionary = fivefreq))
+dim(dtm.train.nb)
+dtm.test.nb <- DocumentTermMatrix(corpus.clean.test, control=list(dictionary = fivefreq))
 
-
-float cube(float3 p,float3 x)
-{
-//return max(max(abs(p.x)-x.x,abs(p.y)-x.y),abs(p.z)-x.z);	// many asciis
-//return length(max(abs(p)-x,0.));							// unsigned, artefacts
-	p=abs(p)-x;					// smallest in
-return max(max(p.x,p.y),p.z);	// ascii-count -> 42 :D
+dim(dtm.train.nb)
+convert_count <- function(x) {
+    y <- ifelse(x > 0, 1,0)
+    #y <- factor(y, levels=c(0,1), labels=c("No", "Yes"))
+    y
 }
-
-// UNSIGNED !!!!
-float rcube(float3 p,float3 x,float y )
-{
-return length(max(abs(p)-x,0.))-y;
-}
-// SIGNED - TEST
-float srcube(float3 p,float3 x,float y )
-{
-//return max(max(abs(p.x)-x.x-y,abs(p.y)-x.y-y),abs(p.z)-x.z-y);
-	p=abs(p)-(x-y);					// smallest in
-return max(max(p.x,p.y),p.z);	// ascii-count -> 42 :D
-}
-
-
-float ring(float3 p,float x,float y,float z)
-{
-//return max(abs(length(p.xz)-r)-r2,abs(p.y)-c);
-return max(abs(length(p.xy)-x)-y,abs(p.z)-z);
-}
-
-
-float octahedron(float3 p,float x)
-{
-   p=abs(p);
-   return (p.x+p.y+p.z-x)/3;
-}
-// TEST ONLY!
-float octahedron_extruded(float3 p,float x)
-{
-//   p=abs(clamp(p,-1.,1.));
-   p=clamp(abs(p),0.,1.);
-   return (p.x+p.y+p.z-x)/3;
-}
-
-
-float cylinderX(float3 p,float x,float y)
-{
-	return max(abs(p.x)-y,length(p.yz)-x);
-}
-float cylinderY(float3 p,float x,float y)
-{
-	return max(abs(p.y)-y,length(p.xz)-x);
-}
-float cylinderZ(float3 p,float x,float y)
-{
-	return max(abs(p.z)-y,length(p.xy)-x);
-//	return length(p.xy-y)-x;
-}
-
-
-float torusX(float3 p,float x,float y)
-{
-return length(float2(length(float2(p.y,p.z))-x,p.x))-y;
-}
-float torusY(float3 p,float x,float y)
-{
-return length(float2(length(float2(p.x,p.z))-x,p.y))-y;
-}
-float torusZ(float3 p,float x,float y)
-{
-return length(float2(length(float2(p.x,p.y))-x,p.z))-y;
-}
-
-
-float hexagonX(float3 p,float x,float y)
-{
-	p=abs(p);
-return max(p.x-y,max(p.y+p.z*.5,p.z)-x);
-}
-float hexagonY(float3 p,float x,float y)
-{
-	p=abs(p);
-return max(p.y-y,max(p.z+p.x*.5,p.x)-x);
-}
-float hexagonZ(float3 p,float x,float y)
-{
-	p=abs(p);
-//return max(p.z-y,max(p.x+p.y*0.57735,p.y)-x);
-return max(p.z-y,max(p.x+p.y*.5,p.y)-x);
-}
-
-
-float octagonX(float3 p,float x,float y)
-{
-	p=abs(p);
-return max(p.x-y,max(p.z+p.y*.5,p.y+p.z*.5)-x);
-}
-float octagonY(float3 p,float x,float y)
-{
-	p=abs(p);
-return max(p.y-y,max(p.z+p.x*.5,p.x+p.z*.5)-x);
-}
-float octagonZ(float3 p,float x,float y)
-{
-	p=abs(p);
-return max(p.z-y,max(p.y+p.x*.5,p.x+p.y*.5)-x);
-}
-
-
-float capsuleX(float3 p,float x,float y)
-{
-	p=abs(p);
-return min(max(p.x-x,length(p.yz)-y),length(p-float3(x,0.,0.))-y);
-}
-float capsuleY(float3 p,float x,float y)
-{
-	p=abs(p);
-return min(max(p.y-x,length(p.xz)-y),length(p-float3(0.,x,0.))-y);
-}
-float capsuleZ(float3 p,float x,float y)
-{
-	p=abs(p);
-return min(max(p.z-x,length(p.xy)-y),length(p-float3(0.,0.,x))-y);
-}
-
-
-float prismX(float3 p,float x,float y)
-{
-return max(abs(p.z)-y,max(abs(p.y)*.9+p.x*.5,-p.x)-x*.5);
-}
-float prismY(float3 p,float x,float y)
-{
-return max(abs(p.z)-y,max(abs(p.x)*.9+p.y*.5,-p.y)-x*.5);
-}
-float prismZ(float3 p,float x,float y)
-{
-return max(abs(p.y)-y,max(abs(p.x)*.9+p.z*.5,-p.z)-x*.5);
-}
-
-
-// Strange Stuff:
-
-// y=.5 ??
-float eightspheres(float3 p,float3 x,float y )
-{
-return length(abs(p)-x)-y;
-}
-
-// y=.5
-float wrongHexahedron(float3 p,float3 x,float y )
-{
-	p=abs(p)-x;
-	p+=y*p.zxy;
-return max(max(p.x,p.y),p.z);
-}
-
-// x,y = .5
-float wronglyOctagon(float3 p,float3 x,float y )
-{
-	p=abs(p)-x;
-	p+=y*p.zyx;
-return max(max(p.x,p.y),p.z);
-}
+trainNB <- apply(dtm.train.nb, 2, convert_count)
+testNB <- apply(dtm.test.nb, 2, convert_count)
+trainNB<- as.data.frame(trainNB)
+testNB<- as.data.frame(testNB)
+train_SVM<-cbind(class=factor(df.train$class), trainNB)
+test_SVM<- cbind(class=factor(df.test$class), testNB)
+train_SVM<-as.data.frame(train_SVM)
+test_SVM<-as.data.frame(test_SVM)
+system.time( SVM_classifier <- svm(class~.,data = train_SVM) )
+system.time( SVM_pred <- predict(SVM_classifier, na.omit(test_SVM)) )
+SVM_conf.mat <- confusionMatrix(SVM_pred, test_SVM$class,positive = "Pos")
+SVM_conf.mat
+table("Predictions"= SVM_pred,  "Actual" = df.test$class )
+SVM_conf.mat$overall['Accuracy']
