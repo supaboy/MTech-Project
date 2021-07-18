@@ -1,0 +1,160 @@
+//@version=4
+//
+
+strategy("backtesting accumulation distribution", shorttitle="backtest acc/dis")
+
+
+//
+lengthrsi = input(13)
+lengthband = input(34)
+lengthrsipl = input(2)
+lengthtradesl = input(7)
+lenH = input(5, minval=1, title="Price Action Channel Length")
+lenL = lenH
+rsiOSL = input(22, minval=0, maxval=49, title="RSI Oversold Level")
+rsiOBL = input(78, minval=51, maxval=100, title="RSI Overbought Level")
+strength = input(2, minval=1, maxval=3, step=1, title="Strength Level: (1)Strong (2)Medium (3)All")
+sgb = input(false, title="Check Box To Turn Bars Gray")
+sbr = input(true, title="Highlight TDI Alert Bars")
+sal = input(true, title="Show Alert Condition Status")
+uha = input(false, title="Use Heikin Ashi Candles for Calculations")
+//
+
+// Constants colours that include fully non-transparent option.
+blue100 = #0000FFFF
+aqua100 = #00FFFFFF
+fuchsia100 = #FF00FFFF
+purple100 = #800080FF
+gray100 = #808080FF
+gold100 = #FFD700FF
+white100 = #FFFFFFFF
+black100 = #000000FF
+gold = #FFD700
+
+
+// Use only Heikinashi Candles for all calculations or use Standard Candles for calculations.
+security_1 = security(heikinashi(syminfo.tickerid), timeframe.period, close)
+security_2 = security(syminfo.ticker, timeframe.period, close)
+srcClose = uha ? security_1 : security_2
+security_3 = security(heikinashi(syminfo.tickerid), timeframe.period, open)
+security_4 = security(syminfo.ticker, timeframe.period, open)
+srcOpen = uha ? security_3 : security_4
+security_5 = security(heikinashi(syminfo.tickerid), timeframe.period, high)
+security_6 = security(syminfo.ticker, timeframe.period, high)
+srcHigh = uha ? security_5 : security_6
+security_7 = security(heikinashi(syminfo.tickerid), timeframe.period, low)
+security_8 = security(syminfo.ticker, timeframe.period, low)
+srcLow = uha ? security_7 : security_8
+//
+r = rsi(srcClose, lengthrsi)
+ma = sma(r, lengthband)
+offs = 1.6185 * stdev(r, lengthband)
+upZone = ma + offs
+dnZone = ma - offs
+mid = (upZone + dnZone) / 2
+mab = sma(r, lengthrsipl)
+mbb = sma(r, lengthtradesl)
+//
+hline(rsiOSL, color=color.red, linewidth=1)
+hline(50, color=color.black, linewidth=1)
+hline(rsiOBL, color=color.lime, linewidth=1)
+// Plot the TDI
+upl = plot(upZone, color=color.blue, title="VB Channel High", linewidth=2)
+dnl = plot(dnZone, color=color.blue, title="VB Channel Low", linewidth=2)
+midl = plot(mid, color=color.orange, linewidth=2, title="MBL")
+mabl = plot(mab, color=color.green, linewidth=2, title="RSI PL")
+mbbl = plot(mbb, color=color.red, linewidth=2, title="TSL Signal")
+//
+//create RSI TSL cloud to indicate trend direction.
+fill(mabl, mbbl, color=mab > mbb ? color.green : color.red, transp=90)
+
+// Calculate Price Action Channel (PAC)
+smmaH = 0.0
+smmaL = 0.0
+sma_1 = sma(srcHigh, lenH)
+smmaH := na(smmaH[1]) ? sma_1 : (smmaH[1] * (lenH - 1) + srcHigh) / lenH
+sma_2 = sma(srcLow, lenL)
+smmaL := na(smmaL[1]) ? sma_2 : (smmaL[1] * (lenL - 1) + srcLow) / lenL
+//
+umacd = input(false, title="Use MACD Filtering")
+fastMA = input(title="MACD Fast MA Length", type=input.integer, defval=8, minval=2)
+slowMA = input(title="MACD Slow MA Length", type=input.integer, defval=16, minval=7)
+signal = input(title="MACD Signal Length", type=input.integer, defval=1, minval=1)
+//
+//
+[currMacd, _, _] = macd(srcClose[0], fastMA, slowMA, signal)
+rising_1 = rising(currMacd, 2)
+falling_1 = falling(currMacd, 2)
+macdH = currMacd > 0 ? rising_1 ? color.green : color.red : 
+   falling_1 ? color.red : color.green
+
+//
+// Bar - Highlighting  based on indication strength
+long = (not umacd or macdH == color.green) and mab > mbb and mab < rsiOBL and 
+   mab > rsiOSL and srcHigh > smmaH and srcClose > srcOpen ? 
+   mbb > mid ? 1 : mab > mid and mbb < mid ? 2 : mab < mid and mbb < mid ? 3 : 0 : 0
+short = (not umacd or macdH == color.red) and mab < mbb and mab < rsiOBL and 
+   mab > rsiOSL and srcLow < smmaL and srcClose < srcOpen ? 
+   mbb < mid ? 1 : mab < mid and mbb > mid ? 2 : mab > mid and mbb > mid ? 3 : 0 : 0
+//
+// Find the right Bar colour if enabled.
+bcolor = not sbr ? na : long == 1 ? gold100 : 
+   long == 2 and strength > 1 ? aqua100 : long == 3 and strength > 2 ? blue100 : 
+   short == 1 ? fuchsia100 : short == 2 and strength > 1 ? purple100 : 
+   short == 3 and strength > 2 ? black100 : sgb ? gray100 : na
+//
+barcolor(color=bcolor, title="Bars Colours")
+//
+//
+// === ALERT conditions
+//
+// create alerts only once per sequence type.
+//
+longCond = long > 0 and long != long[1] and long <= strength
+shortCond = short > 0 and short != short[1] and short <= strength
+
+// show dot only when alert condition is met and bar closed.
+plotshape(sal and (longCond[1] or shortCond[1]), title="Alert Indicator", location=location.bottom, 
+          color=long[1] == 1 ? gold : long[1] == 2 ? color.aqua : long[1] == 3 ? color.blue : short[1] == 1 ? color.fuchsia : short[1] == 2 ? color.purple : short[1] == 3 ? color.black : na, 
+          transp=0, style=shape.circle, offset=-1)
+//
+
+// === /ALERT conditions.
+
+// === STRATEGY ===
+tradeType = input("BOTH", title="What trades should be taken : ", options=["LONG", "SHORT", "BOTH", "NONE"])
+
+// stop loss
+slPoints = input(defval=0, title="Initial Stop Loss Points (zero to disable)", minval=0)
+tpPoints = input(defval=0, title="Initial Target Profit Points (zero for disable)", minval=0)
+
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+
+testStartYear = input(2018, "Backtest Start Year", minval=1980)
+testStartMonth = input(1, "Backtest Start Month", minval=1, maxval=12)
+testStartDay = input(1, "Backtest Start Day", minval=1, maxval=31)
+testPeriodStart = timestamp(testStartYear, testStartMonth, testStartDay, 0, 0)
+
+testStopYear = input(9999, "Backtest Stop Year", minval=1980)
+testStopMonth = input(12, "Backtest Stop Month", minval=1, maxval=12)
+testStopDay = input(31, "Backtest Stop Day", minval=1, maxval=31)
+testPeriodStop = timestamp(testStopYear, testStopMonth, testStopDay, 0, 0)
+
+testPeriod() =>
+    time >= testPeriodStart and time <= testPeriodStop ? true : false
+
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<//
+
+//
+//set up exit parameters
+TP = tpPoints > 0 ? tpPoints : na
+SL = slPoints > 0 ? slPoints : na
+
+// Make sure we are within the bar range, Set up entries and exit conditions
+if testPeriod() and tradeType != "NONE"
+    strategy.entry("long", strategy.long, when=longCond == true and tradeType != "SHORT")
+    strategy.entry("short", strategy.short, when=shortCond == true and tradeType != "LONG")
+    strategy.close("long", when=shortCond == true and tradeType == "LONG")
+    strategy.close("short", when=longCond == true and tradeType == "SHORT")
+    strategy.exit("XL", from_entry="long", profit=TP, loss=SL)
+    strategy.exit("XS", from_entry="short", profit=TP, loss=SL)

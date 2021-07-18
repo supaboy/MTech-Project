@@ -1,0 +1,148 @@
+//@version=4
+
+study("Trend-Following", shorttitle="TFC", overlay = true)
+
+// Input Variables
+GetConfirmation = input(title="Get trend confirmation from longer timeframe?", defval=true)
+ConfirmationResolution = input(title="Confirmation Timeframe", type = input.resolution, defval = "D")
+St1Factor = input(title = "SuperTrend 1: Factor", defval = 1.5, minval = 1.00, maxval = 100, step = 0.01)
+St1Period = input(title = "SuperTrend 1: Period", defval = 7, minval = 1, maxval = 100, step = 1)
+St2Factor = input(title = "SuperTrend 2: Factor", defval = 1.65, minval = 1.00, maxval = 100, step = 0.01)
+St2Period = input(title = "SuperTrend 2: Period", defval = 100, minval = 1, maxval = 100, step = 1)
+EmaFast = input(title = "EMA Cross: Fast", defval = 8, step = 1)
+EmaSlow = input(title = "EMA Cross: Slow", defval = 15, step = 1)
+AroonLength = input(title = "Aroon: Length", defval = 8, step = 1)
+DmiLength = input(title = "DMI: Length", defval = 8, step = 1)
+LrsiAlpha = input(title = "LRSI: Alpha", defval = 0.7, minval = 0, step = 0.1)
+LrsiFeLength = input(title = "LRSI: Fractals Energy Length", type = input.integer, defval = 13)
+LrsiApplyFractalsEnergy = input(title="LRSI: Apply Fractals Energy?", defval=true)
+LrsiApplyNormalization = input(title="LRSI: Apply Normalization to [0, 100]?", defval=false)
+Threshold = input(title = "Indicator Threshold", defval = 3, minval = 1, maxval = 5, step = 1)
+
+// Define SuperTrend Functions
+StUp(StFactor, StPeriod) => hl2 - (StFactor * atr(StPeriod))
+StDn(StFactor, StPeriod) => hl2 + (StFactor * atr(StPeriod))
+
+// Determine SuperTrend 1 Values on First Timeframe
+St1TrendUp_Tf1 = 0.0
+St1TrendUp_Tf1 := close[1] > St1TrendUp_Tf1[1] ? max(StUp(St1Factor, St1Period), St1TrendUp_Tf1[1]) : StUp(St1Factor, St1Period)
+St1TrendDown_Tf1 = 0.0
+St1TrendDown_Tf1 := close[1] < St1TrendDown_Tf1[1] ? min(StDn(St1Factor, St1Period), St1TrendDown_Tf1[1]) : StDn(St1Factor, St1Period)
+St1Trend_Tf1 = 0.0
+St1Trend_Tf1 := close > St1TrendDown_Tf1[1] ? 1 : close < St1TrendUp_Tf1[1] ? -1 : nz(St1Trend_Tf1[1],1)
+
+// Determine SuperTrend 1 Values on Second Timeframe
+St1TrendUp_Tf2 = 0.0
+St1TrendUp_Tf2 := close[1] > St1TrendUp_Tf2[1] ? max(security(syminfo.tickerid, ConfirmationResolution, StUp(St1Factor, St1Period)), St1TrendUp_Tf2[1]) : security(syminfo.tickerid, ConfirmationResolution, StUp(St1Factor, St1Period))
+St1TrendDown_Tf2 = 0.0
+St1TrendDown_Tf2 := close[1] < St1TrendDown_Tf2[1] ? min(security(syminfo.tickerid, ConfirmationResolution, StDn(St1Factor, St1Period)), St1TrendDown_Tf2[1]) : security(syminfo.tickerid, ConfirmationResolution, StDn(St1Factor, St1Period))
+St1Trend_Tf2 = 0.0
+St1Trend_Tf2 := close > St1TrendDown_Tf2[1] ? 1 : close < St1TrendUp_Tf2[1] ? -1 : nz(St1Trend_Tf2[1],1)
+
+// Determine SuperTrend 2 Values on First Timeframe
+St2TrendUp_Tf1 = 0.0
+St2TrendUp_Tf1 := close[1] > St2TrendUp_Tf1[1] ? max(StUp(St2Factor, St2Period), St2TrendUp_Tf1[1]) : StUp(St2Factor, St2Period)
+St2TrendDown_Tf1 = 0.0
+St2TrendDown_Tf1 := close[1] < St2TrendDown_Tf1[1] ? min(StDn(St2Factor, St2Period), St2TrendDown_Tf1[1]) : StDn(St2Factor, St2Period)
+St2Trend_Tf1 = 0.0
+St2Trend_Tf1 := close > St2TrendDown_Tf1[1] ? 1 : close < St2TrendUp_Tf1[1] ? -1 : nz(St2Trend_Tf1[1],1)
+
+// Determine SuperTrend 2 Values on Second Timeframe
+St2TrendUp_Tf2 = 0.0
+St2TrendUp_Tf2 := close[1] > St2TrendUp_Tf2[1] ? max(security(syminfo.tickerid, ConfirmationResolution, StUp(St2Factor, St2Period)), St2TrendUp_Tf2[1]) : security(syminfo.tickerid, ConfirmationResolution, StUp(St2Factor, St2Period))
+St2TrendDown_Tf2 = 0.0
+St2TrendDown_Tf2 := close[1] < St2TrendDown_Tf2[1] ? min(security(syminfo.tickerid, ConfirmationResolution, StDn(St2Factor, St2Period)), St2TrendDown_Tf2[1]) : security(syminfo.tickerid, ConfirmationResolution, StDn(St2Factor, St2Period))
+St2Trend_Tf2 = 0.0
+St2Trend_Tf2 := close > St2TrendDown_Tf2[1] ? 1 : close < St2TrendUp_Tf2[1] ? -1 : nz(St2Trend_Tf2[1],1)
+
+// Combine the SuperTrends on the first timeframe into one, determine values, and plot
+StComboTrend_Tf1 = 0.0
+StComboTrend_Tf1 := St1Trend_Tf1 == St2Trend_Tf1 ? St1Trend_Tf1 : na
+StComboTrendUp_Tf1 = St1TrendUp_Tf1 < St2TrendUp_Tf1 ? St1TrendUp_Tf1 : St2TrendUp_Tf1
+StComboTrendDown_Tf1 = St1TrendDown_Tf1 > St2TrendDown_Tf1 ? St1TrendDown_Tf1 : St2TrendDown_Tf1
+StComboTsl_Tf1 = StComboTrend_Tf1 == 1 ? StComboTrendUp_Tf1 : StComboTrend_Tf1 == -1 ? StComboTrendDown_Tf1 : na
+StComboLinecolor_Tf1 = StComboTrend_Tf1 == 1 ? #00ff00 : #ff0000
+plot(StComboTsl_Tf1, color = StComboLinecolor_Tf1, style = plot.style_linebr, linewidth = 2, title = "SuperTrend Combo (Chart Timeframe)")
+
+// Combine the SuperTrends on the second timeframe into one and determine values
+StComboTrend_Tf2 = 0.0
+StComboTrend_Tf2 := St1Trend_Tf2 == St2Trend_Tf2 ? St1Trend_Tf2 : na
+StComboTrendUp_Tf2 = St1TrendUp_Tf2 < St2TrendUp_Tf2 ? St1TrendUp_Tf2 : St2TrendUp_Tf2
+StComboTrendDown_Tf2 = St1TrendDown_Tf2 > St2TrendDown_Tf2 ? St1TrendDown_Tf2 : St2TrendDown_Tf2
+StComboTsl_Tf2 = StComboTrend_Tf2 == 1 ? StComboTrendUp_Tf2 : StComboTrend_Tf2 == -1 ? StComboTrendDown_Tf2 : na
+
+// Determine Overall SuperTrend Direction
+StComboTrend = 0.0
+StComboTrend := GetConfirmation == true ? StComboTrend_Tf1 == StComboTrend_Tf2 ? StComboTrend_Tf1 : na : StComboTrend_Tf1
+
+// Define EMA Cross and Determine Status
+Ma1 = ema(close, EmaFast)
+Ma2 = ema(close, EmaSlow)
+MaTrend = Ma1 < Ma2 ? -1 : 1
+
+// Define Aroon Indicator and Determine Status
+AroonIndicatorUpper = 100 * (highestbars(high, AroonLength + 1) + AroonLength) / AroonLength
+AroonIndicatorLower = 100 * (lowestbars(low, AroonLength + 1) + AroonLength) / AroonLength
+AroonIndictorTrend = 0
+AroonIndictorTrend := crossover(AroonIndicatorUpper, AroonIndicatorLower) ? 1 : crossover(AroonIndicatorLower, AroonIndicatorUpper) ? -1 : AroonIndictorTrend[1]
+
+// Define Aroon Oscillator and Determine Status
+AroonOscillatorMidpoint = 0
+AroonOscillator = AroonIndicatorUpper - AroonIndicatorLower
+AroonOscillatorSignal = 0
+AroonOscillatorSignal := crossover(AroonOscillator, -80) ? 1 : crossunder(AroonOscillator, 80) ? -1 : AroonOscillatorSignal[1]
+
+// Define Directional Movement Index and Determine Values
+DmiUp = change(high)
+DmiDown = -change(low)
+DmiPlusDm = na(DmiUp) ? na : (DmiUp > DmiDown and DmiUp > 0 ? DmiUp : 0)
+DmiMinusDm = na(DmiDown) ? na : (DmiDown > DmiUp and DmiDown > 0 ? DmiDown : 0)
+DmiTrur = rma(tr, DmiLength)
+DmiPlus = fixnan(100 * rma(DmiPlusDm, DmiLength) / DmiTrur)
+DmiMinus = fixnan(100 * rma(DmiMinusDm, DmiLength) / DmiTrur)
+DmiTrend = 0
+DmiTrend := crossover(DmiPlus, DmiMinus) ? 1 : crossover(DmiMinus, DmiPlus) ? -1 : DmiTrend[1]
+
+// Define Laguerre RSI and Determine Values
+LrsiOC = (open + nz(close[1])) / 2
+LrsiHC = max(high, nz(close[1]))
+LrsiLC = min(low, nz(close[1]))
+LrsiFeSrc = (LrsiOC + LrsiHC + LrsiLC + close) / 4
+LrsiFeAlpha = log(sum((LrsiHC - LrsiLC) / (highest(LrsiFeLength) - lowest(LrsiFeLength)), LrsiFeLength)) / log(LrsiFeLength)
+LrsiAlphaCalc = LrsiApplyFractalsEnergy ? LrsiFeAlpha : LrsiAlpha
+LrsiL0 = 0.0
+LrsiL0 := LrsiAlphaCalc * (LrsiApplyFractalsEnergy ? LrsiFeSrc : close) + (1 - LrsiAlphaCalc) * nz(LrsiL0[1])
+LrsiL1 = 0.0
+LrsiL1 := -(1 - LrsiAlphaCalc) * LrsiL0 + nz(LrsiL0[1]) + (1 - LrsiAlphaCalc) * nz(LrsiL1[1])
+LrsiL2 = 0.0
+LrsiL2 := -(1 - LrsiAlphaCalc) * LrsiL1 + nz(LrsiL1[1]) + (1 - LrsiAlphaCalc) * nz(LrsiL2[1])
+LrsiL3 = 0.0
+LrsiL3 := -(1 - LrsiAlphaCalc) * LrsiL2 + nz(LrsiL2[1]) + (1 - LrsiAlphaCalc) * nz(LrsiL3[1])
+LrsiCU = 0.0
+LrsiCU := (LrsiL0 >= LrsiL1 ? LrsiL0 - LrsiL1 : 0) + (LrsiL1 >= LrsiL2 ? LrsiL1 - LrsiL2 : 0) + (LrsiL2 >= LrsiL3 ? LrsiL2 - LrsiL3 : 0)
+LrsiCD = 0.0
+LrsiCD := (LrsiL0 >= LrsiL1 ? 0 : LrsiL1 - LrsiL0) + (LrsiL1 >= LrsiL2 ? 0 : LrsiL2 - LrsiL1) + (LrsiL2 >= LrsiL3 ? 0 : LrsiL3 - LrsiL2)
+Lrsi = LrsiCU + LrsiCD != 0
+         ? LrsiApplyNormalization ? 100 * LrsiCU / (LrsiCU + LrsiCD) : LrsiCU / (LrsiCU + LrsiCD)
+         : 0
+LrsiMult = (LrsiApplyNormalization ? 100 : 1)
+LrsiOverBought = 0.8 * LrsiMult
+LrsiOverSold = 0.2 * LrsiMult
+LrsiSignal = 0
+LrsiSignal := crossover(Lrsi, LrsiOverSold) ? 1 : crossunder(Lrsi, LrsiOverBought) ? -1 : LrsiSignal[1]
+
+// Determine Strength of Trend Based on Status of All Indicators
+MaTrendCalc = StComboTrend == MaTrend ? StComboTrend : 0
+AroonIndictorTrendCalc = StComboTrend == AroonIndictorTrend ? StComboTrend : 0
+AroonOscillatorSignalCalc = StComboTrend == AroonOscillatorSignal ? StComboTrend : 0
+DmiTrendCalc = StComboTrend == DmiTrend ? StComboTrend : 0
+LrsiSignalCalc = StComboTrend == LrsiSignal ? StComboTrend : 0
+TrendStrength = MaTrendCalc + AroonIndictorTrendCalc + AroonOscillatorSignalCalc + DmiTrendCalc + LrsiSignalCalc
+
+// Plot Entry Arrows
+EntryDirection = 0
+EntryDirection := StComboTrend == 1 and TrendStrength >= Threshold and TrendStrength[1] < Threshold ? 1 : StComboTrend == -1 and TrendStrength <= -Threshold and TrendStrength[1] > -Threshold ? -1 : EntryDirection[1]
+plotarrow(StComboTrend == 1 and TrendStrength >= Threshold and TrendStrength[1] < Threshold ? StComboTrend : na, title="Up Entry Arrow", colorup=color.yellow, maxheight=40, minheight=20, transp=20)
+//plotarrow(EntryDirection == 1 and EntryDirection[1] != 1 ? StComboTrend : na, title="Up Entry Arrow", colorup=color.yellow, maxheight=40, minheight=20, transp=20)
+plotarrow(StComboTrend == -1 and TrendStrength <= -Threshold and TrendStrength[1] > -Threshold ? StComboTrend : na, title="Down Entry Arrow", colordown=color.yellow, maxheight=40, minheight=20, transp=20)
+//plotarrow(EntryDirection == -1 and EntryDirection[1] != -1 ? StComboTrend : na, title="Down Entry Arrow", colordown=color.yellow, maxheight=40, minheight=20, transp=20)
