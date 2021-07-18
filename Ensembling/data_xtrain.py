@@ -5,7 +5,7 @@ library(e1071)
 library(dplyr)
 library(caret)
 #df<- read.csv(file.choose(), stringsAsFactors = FALSE)
-df<- read.csv("dataset/labelledTweets_DS.csv", stringsAsFactors = FALSE)
+df<- read.csv("datasets/investment reports dataset/*", stringsAsFactors = FALSE)
 #set.seed(1)
 df <- df[sample(nrow(df)), ]
 df <- df[sample(nrow(df)), ]
