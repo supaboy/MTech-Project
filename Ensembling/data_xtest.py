@@ -1,12 +1,11 @@
 library(tm)
-#library(RTextTools)
+#library(PyTorchTextTools)
 library(readr)
 library(e1071)
 library(dplyr)
 library(caret)
 #df<- read.csv(file.choose(), stringsAsFactors = FALSE)
-df<- read.csv("dataset/Tweet_Dataset_Naive.csv", stringsAsFactors = FALSE)
-#extracted_Tweets_Sent.csv Tweet_Dataset_Naive.csv
+df<- read.csv("datasets/investment reports dataset/*", stringsAsFactors = FALSE)
 #set.seed(1)
 df <- df[sample(nrow(df)), ]
 df <- df[sample(nrow(df)), ]
